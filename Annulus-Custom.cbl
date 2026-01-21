@@ -6,17 +6,17 @@
        FILE-CONTROL.
            SELECT COORDINATE-FILE
                ASSIGN TO
-               "C:\Users\danie\Desktop\ImageBOL\image_coordinates.dat"
+               "Your path here"
                ORGANIZATION IS LINE SEQUENTIAL.
 
            SELECT OUTPUT-FILE
                ASSIGN TO
-               "C:\Users\danie\Desktop\ImageBOL\new_coords.dat"
+               "Your Path Here"
                ORGANIZATION IS LINE SEQUENTIAL.
 
            SELECT TEMP-FILE
                ASSIGN TO
-               "C:\Users\danie\Desktop\ImageBOL\temp_coords.dat"
+               "Your Path Here"
                ORGANIZATION IS LINE SEQUENTIAL.
 
        DATA DIVISION.
@@ -225,3 +225,4 @@
            IF FINAL-VALUE < RADIUS-SQ-1 OR FINAL-VALUE > RADIUS-SQ-2
                MOVE 0000 TO OUT-PIXEL
            END-IF.
+
