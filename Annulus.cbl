@@ -7,17 +7,17 @@
            SELECT COORDINATE-FILE
                ASSIGN TO
                *> Insert your own file path if you are using GnuCOBOL.
-               "C:\Users\danie\Desktop\imgbol\image_coordinates.dat"
+               "path to\image_coordinates.dat"
                ORGANIZATION IS LINE SEQUENTIAL.
 
            SELECT OUTPUT-FILE
                ASSIGN TO
-               "C:\Users\danie\Desktop\imgbol\new_coords.dat"
+               path to\new_coords.dat"
                ORGANIZATION IS LINE SEQUENTIAL.
 
            SELECT TEMP-FILE
                ASSIGN TO
-               "C:/Users/danie/Desktop/imgbol/temp_coords.dat"
+              path to/temp_coords.dat"
                ORGANIZATION IS LINE SEQUENTIAL.
 
        DATA DIVISION.
@@ -225,3 +225,4 @@
            IF FINAL-VALUE < RADIUS-SQ-1 OR FINAL-VALUE > RADIUS-SQ-2
                MOVE 0 TO OUT-PIXEL
            END-IF.
+
