@@ -6,17 +6,17 @@
        FILE-CONTROL.
            SELECT COORDINATE-FILE
                ASSIGN TO
-               "Your path here"
+               "C:\Users\danie\Desktop\imgbol\image_coordinates.dat"
                ORGANIZATION IS LINE SEQUENTIAL.
 
            SELECT OUTPUT-FILE
                ASSIGN TO
-               "Your Path Here"
+               "C:\Users\danie\Desktop\imgbol\new_coords.dat"
                ORGANIZATION IS LINE SEQUENTIAL.
 
            SELECT TEMP-FILE
                ASSIGN TO
-               "Your Path Here"
+               "C:/Users/danie/Desktop/imgbol/temp_coords.dat"
                ORGANIZATION IS LINE SEQUENTIAL.
 
        DATA DIVISION.
@@ -27,21 +27,34 @@
        FD  OUTPUT-FILE.
        01  OUTPUT-RECORD.
            05 OUT-X            PIC 9(4).
-           05 FILLER           PIC X VALUE SPACE.
+           05 OUT-SPACE-1      PIC X.
            05 OUT-Y            PIC 9(4).
-           05 FILLER           PIC X VALUE SPACE.
+           05 OUT-SPACE-2      PIC X.
            05 OUT-PIXEL        PIC 9(4).
 
        FD  TEMP-FILE.
-       01  TEMP-RECORD         PIC X(14).
+       01  TEMP-RECORD.
+           05 TEMP-X            PIC 9(4).
+           05 TEMP-SPACE-1      PIC X.
+           05 TEMP-Y            PIC 9(4).
+           05 TEMP-SPACE-2      PIC X.
+           05 TEMP-PIXEL        PIC 9(4).
+
        WORKING-STORAGE SECTION.
+
+       01  WS-OUTPUT-RECORD.
+           05 WS-OUT-X          PIC 9(4).
+           05 WS-OUT-SPACE-1    PIC X VALUE SPACE.
+           05 WS-OUT-Y          PIC 9(4).
+           05 WS-OUT-SPACE-2    PIC X VALUE SPACE.
+           05 WS-OUT-PIXEL      PIC 9(4).
 
       *Equation Variables
        01  DIAMETER-RECEIVE-SMALL      PIC 9(4).
        01  DIAMETER-RECEIVE-LARGE      PIC 9(4).
 
-       01  RADIUS-SQ-1                 PIC 9(4).
-       01  RADIUS-SQ-2                 PIC 9(4).
+       01  RADIUS-SQ-1                 PIC 9(10).
+       01  RADIUS-SQ-2                 PIC 9(10).
 
        01  WS-COORDS.
            05 PIXEL-X                     PIC 9(4).
@@ -55,9 +68,6 @@
            03  X-COORD-VAR                 PIC 9(4).
            03  Y-COORD-VAR                 PIC 9(4).
 
-           *> FUN EXPERIMENT: Change the square variables to a lower
-           *> pic VALUE for some crazy psychedelic patterns.
-
        01  ARITHMETIC-VARIABLES.
            03  X-VAR-MINUS-X-SET           PIC S9(4).
            03  X-VAR-MINUS-X-SET-SQ        PIC 9(10).
@@ -65,8 +75,6 @@
            03  Y-VAR-MINUS-Y-SET-SQ        PIC 9(10).
       *These are used to test if the equation is working.
        01  FINAL-VALUE                     PIC 9(10).
-
-
 
       *These are to find the highest point
        01  CHAMPION-VALUES.
@@ -81,21 +89,18 @@
        PROCEDURE DIVISION.
        PROGRAM-INIT.
            OPEN INPUT COORDINATE-FILE.
-           OPEN OUTPUT TEMP-FILE.      *> Open TEMP, not Output
+           OPEN OUTPUT TEMP-FILE.
 
            PERFORM RADIUS-INITIALIZATION.
            PERFORM RADIUS-CALCULATION.
            PERFORM CENTER-POINT-INPUT.
            PERFORM CONVERSION-PROCEDURE.
 
-
            CLOSE COORDINATE-FILE.
-
            CLOSE TEMP-FILE.
+
            PERFORM APPLY-ANNULUS.
 
-           CLOSE OUTPUT-FILE.
-           CLOSE TEMP-FILE.
            STOP RUN.
 
        RADIUS-INITIALIZATION.
@@ -123,7 +128,8 @@
 
            COMPUTE RADIUS-SQ-2
                  = DIAMETER-RECEIVE-LARGE * DIAMETER-RECEIVE-LARGE.
-           DISPLAY RADIUS-SQ-1 " " RADIUS-SQ-2.
+           DISPLAY "Inner radius squared: " RADIUS-SQ-1
+           DISPLAY "Outer radius squared: " RADIUS-SQ-2.
 
 
        CENTER-POINT-INPUT.
@@ -147,8 +153,6 @@
            END-PERFORM.
 
 
-      *In the future, focus on ways in which you can split things up for
-      *    readability. You will thank yourself.
        WRITE-COORDINATES-TO-FILE.
            UNSTRING COORD-RAW-LINE
                    DELIMITED BY ","
@@ -156,28 +160,14 @@
                         PIXEL-Y
                         PIXEL-B
            END-UNSTRING
-      *Note: You assigned zero to MAX-PIXEL from the gate, therefore
-      *    The first PIXEL-BRIGHTNESS is always going to initialize this.
-      *     IF PIXEL-B > MAX-PIXEL THEN
-      *              MOVE PIXEL-B             TO MAX-PIXEL
-      *              MOVE PIXEL-X             TO MAX-X
-      *              MOVE PIXEL-Y             TO MAX-Y
-      *     END-IF
 
-           MOVE PIXEL-X                      TO OUT-X
-           MOVE PIXEL-Y                      TO OUT-Y
-           MOVE PIXEL-B                      TO OUT-PIXEL
+           MOVE PIXEL-X                      TO TEMP-X
+           MOVE SPACE                        TO TEMP-SPACE-1
+           MOVE PIXEL-Y                      TO TEMP-Y
+           MOVE SPACE                        TO TEMP-SPACE-2
+           MOVE PIXEL-B                      TO TEMP-PIXEL
 
-           WRITE TEMP-RECORD FROM OUTPUT-RECORD.
-
-
-
-
-
-      *This displays the highest pixel and its coordinates. Commented for redundancy
-      *HIGHEST-VALUE-FINDER.
-      *     DISPLAY "HIGHEST BRIGHTNESS FOUND: " MAX-PIXEL.
-      *     DISPLAY "LOCATED AT X: " MAX-X " Y: " MAX-Y.
+           WRITE TEMP-RECORD.
 
 
        APPLY-ANNULUS.
@@ -188,41 +178,43 @@
            MOVE "N" TO END-OF-FILE.
 
            PERFORM UNTIL END-OF-FILE = "Y"
-               READ TEMP-FILE INTO OUTPUT-RECORD
+               READ TEMP-FILE
                    AT END
                        MOVE "Y" TO END-OF-FILE
                    NOT AT END
+                       MOVE TEMP-X TO WS-OUT-X
+                       MOVE TEMP-Y TO WS-OUT-Y
+                       MOVE TEMP-PIXEL TO WS-OUT-PIXEL
                        PERFORM ANNULUS-CHECK
-                       PERFORM ANNULUS-CHECK-2
-                       PERFORM ANNULUS-CHECK-3
 
                        *> This WRITE now goes to the final file
+                       MOVE WS-OUT-X TO OUT-X
+                       MOVE SPACE TO OUT-SPACE-1
+                       MOVE WS-OUT-Y TO OUT-Y
+                       MOVE SPACE TO OUT-SPACE-2
+                       MOVE WS-OUT-PIXEL TO OUT-PIXEL
                        WRITE OUTPUT-RECORD
                END-READ
            END-PERFORM.
 
-       ANNULUS-CHECK.
-      * Calculate Distance Squares (using Signed variables)
-           COMPUTE X-VAR-MINUS-X-SET = MAX-X - OUT-X.
+           CLOSE OUTPUT-FILE.
+           CLOSE TEMP-FILE.
 
+       ANNULUS-CHECK.
+      * Calculate Distance Squared from center
+           COMPUTE X-VAR-MINUS-X-SET = WS-OUT-X - MAX-X.
            COMPUTE X-VAR-MINUS-X-SET-SQ
                =   X-VAR-MINUS-X-SET * X-VAR-MINUS-X-SET.
 
-
-           COMPUTE Y-VAR-MINUS-Y-SET = MAX-Y - OUT-Y.
-
+           COMPUTE Y-VAR-MINUS-Y-SET = WS-OUT-Y - MAX-Y.
            COMPUTE Y-VAR-MINUS-Y-SET-SQ
                =   Y-VAR-MINUS-Y-SET * Y-VAR-MINUS-Y-SET.
 
-       ANNULUS-CHECK-2.
            COMPUTE FINAL-VALUE =
                         X-VAR-MINUS-X-SET-SQ
                            + Y-VAR-MINUS-Y-SET-SQ.
 
-       ANNULUS-CHECK-3.
-           *> note for future reference, the OR statement makes this kind
-           *> of thing much easier than the way I tried it at first
+      * Check if pixel is outside annulus (too close or too far)
            IF FINAL-VALUE < RADIUS-SQ-1 OR FINAL-VALUE > RADIUS-SQ-2
-               MOVE 0000 TO OUT-PIXEL
+               MOVE 0 TO WS-OUT-PIXEL
            END-IF.
-
