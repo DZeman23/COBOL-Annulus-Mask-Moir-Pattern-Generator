@@ -28,9 +28,9 @@
        FD  OUTPUT-FILE.
        01  OUTPUT-RECORD.
            05 OUT-X            PIC 9(4).
-           05 FILLER           PIC X VALUE SPACE.
+           05 OUT-SPACE-1      PIC X.
            05 OUT-Y            PIC 9(4).
-           05 FILLER           PIC X VALUE SPACE.
+           05 OUT-SPACE-2      PIC X.
            05 OUT-PIXEL        PIC 9(4). *> When 0000, the pixel is blank.
 
        FD  TEMP-FILE.
@@ -128,7 +128,8 @@
 
            COMPUTE RADIUS-SQ-2
                  = DIAMETER-RECEIVE-LARGE * DIAMETER-RECEIVE-LARGE.
-           DISPLAY RADIUS-SQ-1 " " RADIUS-SQ-2.
+           DISPLAY "Inner radius squared: " RADIUS-SQ-1.
+           DISPLAY "Outer radius squared: " RADIUS-SQ-2.
 
        CONVERSION-PROCEDURE.
 
@@ -159,7 +160,9 @@
            END-IF
 
            MOVE PIXEL-X                      TO OUT-X
+           MOVE SPACE                        TO OUT-SPACE-1
            MOVE PIXEL-Y                      TO OUT-Y
+           MOVE SPACE                        TO OUT-SPACE-2
            MOVE PIXEL-B                      TO OUT-PIXEL
 
            WRITE TEMP-RECORD FROM OUTPUT-RECORD.
@@ -192,6 +195,8 @@
                        PERFORM ANNULUS-CHECK-3
 
                        *> This WRITE now goes to the final file
+                       MOVE SPACE TO OUT-SPACE-1
+                       MOVE SPACE TO OUT-SPACE-2
                        WRITE OUTPUT-RECORD
                END-READ
            END-PERFORM.
@@ -218,5 +223,5 @@
        ANNULUS-CHECK-3.
       * 0000 Will produce a blank pixel when rendered from the data file
            IF FINAL-VALUE < RADIUS-SQ-1 OR FINAL-VALUE > RADIUS-SQ-2
-               MOVE 0000 TO OUT-PIXEL
+               MOVE 0 TO OUT-PIXEL
            END-IF.
